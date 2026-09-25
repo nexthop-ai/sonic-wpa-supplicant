@@ -3333,12 +3333,19 @@ static int ieee802_1x_kay_mkpdu_sanity_check(struct ieee802_1x_kay *kay,
 		 * drop is always logged. Raised from MSG_DEBUG so a silent,
 		 * one-directional MACsec teardown is visible at the deployed
 		 * log level. The running count is exported via wpa_cli STATUS.
+		 *
+		 * Dump the received CKN too: diffed against the "ckn=" in that
+		 * same STATUS output, it separates a corrupted CKN from a peer
+		 * in a different CA. The CKN is not secret - it travels in the
+		 * clear in every MKPDU.
 		 */
 		if (kay->mkpdu_unknown_ckn_last_log == 0 ||
 		    now - kay->mkpdu_unknown_ckn_last_log >= 60) {
 			wpa_printf(MSG_WARNING,
 				   "KaY: CKN is not included in my CA - dropping MKPDU on %s (unknown-CKN drops: %" PRIu64 ")",
 				   kay->if_name, kay->mkpdu_unknown_ckn);
+			wpa_hexdump(MSG_WARNING, "KaY: unknown CKN",
+				    body->ckn, ckn_len);
 			kay->mkpdu_unknown_ckn_last_log = now;
 		}
 		return -1;
